@@ -1,0 +1,7 @@
+node_modules
+.git
+*.md
+.env
+.env.*
+data/share-buckets/*
+!data/share-buckets/.gitkeep
