@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+
+# Keep sample data structure, ignore runtime-generated / private data
+data/share-buckets/*
+!data/share-buckets/.gitkeep
+
+# Optional: uncomment the next line later if you put real production keys in the file
+# data/api-keys.json

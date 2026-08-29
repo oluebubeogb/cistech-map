@@ -1,0 +1,22 @@
+{
+  "port": 3847,
+  "devPath": "xS7HLfWyqixtFW8AUlK4kobSdNmhi6",
+  "appName": "CISTECH Map",
+  "domain": "maps.collab.name.ng",
+  "defaultCenter": [7.4896, 5.5263],
+  "defaultZoom": 13,
+  "mapTitle": "CISTECH Map",
+  "supportEmail": "admin@collab.name.ng",
+  "attributionHtml": "© <a href=\"https://openstreetmap.org\" target=\"_blank\">OpenStreetMap</a> · <a href=\"https://cistechonline.com\" target=\"_blank\" rel=\"noopener\">CISTECH Map</a> · <a href=\"/api/docs\" target=\"_blank\">API</a>",
+  "siteIconUrl": "",
+  "features": {
+    "locationSharing": true
+  },
+  "shareScreen": {
+    "maxDurationMinutes": 120,
+    "extendMinutes": 60,
+    "userIconSize": 28,
+    "pollMs": 2500,
+    "presenceTtlMs": 30000
+  }
+}

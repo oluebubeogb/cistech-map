@@ -1,0 +1,219 @@
+{
+  "version": 1,
+  "name": "CISTECH Light Blue",
+  "colors": {
+    "background": "#f4f6f9",
+    "water": "#6eb0d6",
+    "forest": "#7aa894",
+    "park": "#69867a",
+    "land": "#bfe8d1",
+    "road_major": "#ffffff",
+    "road_major_casing": "#b8c0cc",
+    "road_secondary": "#ffffff",
+    "road_secondary_casing": "#c5ccd6",
+    "road_street": "#ffffff",
+    "road_street_casing": "#d0d5de",
+    "road_path": "#e2e6ed",
+    "building": "#e4e8ef",
+    "building_outline": "#cdd3dc",
+    "label_text": "#3c4450",
+    "label_halo": "#ffffff",
+    "boundary": "#b0b8c4",
+    "railway": "#a8b0bc"
+  },
+  "roadWidths": {
+    "major": {
+      "base": 1.2,
+      "stops": [
+        [
+          10,
+          1.5
+        ],
+        [
+          14,
+          6
+        ],
+        [
+          18,
+          18
+        ]
+      ]
+    },
+    "secondary": {
+      "base": 1,
+      "stops": [
+        [
+          12,
+          1.2
+        ],
+        [
+          14,
+          4
+        ],
+        [
+          18,
+          12
+        ]
+      ]
+    },
+    "street": {
+      "base": 0.8,
+      "stops": [
+        [
+          13,
+          1
+        ],
+        [
+          15,
+          3
+        ],
+        [
+          18,
+          8
+        ]
+      ]
+    }
+  },
+  "icons": {
+    "hospital": {
+      "fa": "fa-hospital",
+      "color": "#e74c3c",
+      "size": 22
+    },
+    "market": {
+      "fa": "fa-store",
+      "color": "#27ae60",
+      "size": 20
+    },
+    "building": {
+      "fa": "fa-building",
+      "color": "#3498db",
+      "size": 18
+    },
+    "school": {
+      "fa": "fa-school",
+      "color": "#9b59b6",
+      "size": 20
+    },
+    "church": {
+      "fa": "fa-church",
+      "color": "#8e44ad",
+      "size": 20
+    },
+    "restaurant": {
+      "fa": "fa-utensils",
+      "color": "#e67e22",
+      "size": 18
+    },
+    "hotel": {
+      "fa": "fa-hotel",
+      "color": "#2980b9",
+      "size": 18
+    },
+    "gas": {
+      "fa": "fa-gas-pump",
+      "color": "#f39c12",
+      "size": 18
+    },
+    "bank": {
+      "fa": "fa-university",
+      "color": "#1abc9c",
+      "size": 18
+    },
+    "default": {
+      "fa": "fa-map-marker-alt",
+      "color": "#e74c3c",
+      "size": 20
+    }
+  },
+  "features": {
+    "showLabels": true,
+    "showBuildings": true,
+    "showForests": true,
+    "showWater": true,
+    "thickerRoads": true
+  },
+  "searchPin": {
+    "color": "#2563eb",
+    "size": 20,
+    "borderColor": "#ffffff",
+    "borderWidth": 3
+  },
+  "poiIcons": {
+    "enabledTypes": [
+      "hospital",
+      "market",
+      "church",
+      "school",
+      "restaurant",
+      "hotel",
+      "gas",
+      "bank",
+      "poi",
+      "shop",
+      "fuel"
+    ],
+    "minZoom": 14,
+    "circleSize": 28,
+    "borderWidth": 3,
+    "iconColor": "#ffffff",
+    "defaults": {
+      "hospital": {
+        "fa": "fa-hospital",
+        "bg": "#e74c3c"
+      },
+      "market": {
+        "fa": "fa-store",
+        "bg": "#27ae60"
+      },
+      "shop": {
+        "fa": "fa-store",
+        "bg": "#27ae60"
+      },
+      "church": {
+        "fa": "fa-church",
+        "bg": "#8e44ad"
+      },
+      "school": {
+        "fa": "fa-school",
+        "bg": "#9b59b6"
+      },
+      "restaurant": {
+        "fa": "fa-utensils",
+        "bg": "#e67e22"
+      },
+      "hotel": {
+        "fa": "fa-hotel",
+        "bg": "#2980b9"
+      },
+      "gas": {
+        "fa": "fa-gas-pump",
+        "bg": "#f39c12"
+      },
+      "fuel": {
+        "fa": "fa-gas-pump",
+        "bg": "#f39c12"
+      },
+      "bank": {
+        "fa": "fa-university",
+        "bg": "#1abc9c"
+      },
+      "poi": {
+        "fa": "fa-location-dot",
+        "bg": "#64748b"
+      },
+      "default": {
+        "fa": "fa-circle",
+        "bg": "#64748b"
+      }
+    }
+  },
+  "markedAreas": {
+    "colors": [
+      "#e11d48",
+      "#2563eb",
+      "#16a34a"
+    ],
+    "maxAreas": 23
+  }
+}

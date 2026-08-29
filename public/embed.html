@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mahp Embed</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    html, body, #map { margin: 0; height: 100%; width: 100%; font-family: system-ui, sans-serif; }
+    .search-bar {
+      position: absolute; top: 10px; left: 10px; right: 10px; z-index: 10;
+      max-width: 400px; display: none;
+    }
+    .search-bar input {
+      width: 100%; padding: 10px 14px; border-radius: 8px; border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2); font-size: 0.95rem; box-sizing: border-box;
+    }
+    .dest-card {
+      position: absolute; left: 50%; transform: translateX(-50%); bottom: 16px; z-index: 15;
+      background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.18);
+      padding: 12px 14px; min-width: 240px; max-width: min(340px, 92vw);
+    }
+    .dest-card h4 { margin: 0 0 4px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+    .dest-card .meta { font-size: 0.8rem; color: #5f6368; margin-bottom: 8px; }
+    .dest-card button {
+      border: none; border-radius: 8px; padding: 9px 12px; font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; background: #1a73e8; color: #fff; width: 100%;
+    }
+    .dest-card button:disabled { opacity: 0.6; cursor: wait; }
+    .maplibregl-ctrl-bottom-right { bottom: 8px !important; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div class="search-bar" id="search-bar">
+    <input type="text" id="q" placeholder="Search..." />
+  </div>
+  <div class="dest-card" id="dest-card" style="display:none"></div>
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const apiKey = params.get('api_key') || params.get('key') || 'mahp_live_demo_abc123xyz789';
+    // Query ?features= is a soft override; key privileges from server win when present.
+    const queryFeatures = (params.get('features') || '').split(',').map(s => s.trim()).filter(Boolean);
+    let features = queryFeatures.length ? queryFeatures : ['search', 'zoom', 'geolocate', 'route', 'embed'];
+    const has = f => features.includes(f) || features.includes('all');
+    const destLat = parseFloat(params.get('lat'));
+    const destLon = parseFloat(params.get('lon'));
+    const destName = params.get('name') || 'Shared location';
+    const wantDir = params.get('directions') === '1' || params.get('dir') === '1';
+    const hasDest = !isNaN(destLat) && !isNaN(destLon);
+
+    (async () => {
+      const styleRes = await fetch('/api/maplibre-style?api_key=' + encodeURIComponent(apiKey));
+      const style = await styleRes.json();
+      const cfgRes = await fetch('/api/config?api_key=' + encodeURIComponent(apiKey));
+      if (!cfgRes.ok) {
+        document.body.innerHTML = '<div style="font-family:system-ui;padding:40px;text-align:center"><h2>Invalid API key</h2><p>This embed is not authorized.</p></div>';
+        return;
+      }
+      const cfg = await cfgRes.json();
+      // Server key features take precedence
+      if (Array.isArray(cfg.enabledFeatures) && cfg.enabledFeatures.length) {
+        features = cfg.enabledFeatures;
+        // Optional intersection with query ?features= for further tightening
+        if (queryFeatures.length) {
+          features = features.filter(f => queryFeatures.includes(f) || queryFeatures.includes('all'));
+        }
+      }
+
+      const center = hasDest ? [destLon, destLat] : (cfg.center || [7.49, 5.53]);
+      const zoom = hasDest ? 15 : (cfg.zoom || 13);
+
+      const map = new maplibregl.Map({
+        container: 'map',
+        style,
+        center,
+        zoom,
+        attributionControl: true
+      });
+
+      if (has('zoom')) {
+        map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
+      }
+      if (has('geolocate')) {
+        map.addControl(new maplibregl.GeolocateControl({
+          positionOptions: { enableHighAccuracy: true },
+          trackUserLocation: true
+        }), 'bottom-right');
+      }
+
+      if (has('search') && !hasDest) {
+        document.getElementById('search-bar').style.display = 'block';
+        const input = document.getElementById('q');
+        let t;
+        input.addEventListener('input', () => {
+          clearTimeout(t);
+          t = setTimeout(async () => {
+            if (input.value.length < 2) return;
+            const r = await fetch('/api/search?q=' + encodeURIComponent(input.value) + '&api_key=' + encodeURIComponent(apiKey));
+            const d = await r.json();
+            if (d.results && d.results[0]) {
+              map.flyTo({ center: [d.results[0].lon, d.results[0].lat], zoom: 15 });
+            }
+          }, 300);
+        });
+      }
+
+      let routeLayerId = 'embed-route';
+      function clearRoute() {
+        try {
+          if (map.getLayer(routeLayerId)) map.removeLayer(routeLayerId);
+          if (map.getSource(routeLayerId)) map.removeSource(routeLayerId);
+        } catch (_) {}
+      }
+
+      async function directionsFromMe() {
+        const status = document.getElementById('dest-status');
+        const btn = document.getElementById('btn-dir');
+        if (!navigator.geolocation) {
+          if (status) status.textContent = 'Geolocation not supported.';
+          return;
+        }
+        if (btn) { btn.disabled = true; btn.textContent = 'Getting location…'; }
+        if (status) status.textContent = 'Getting your location…';
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+          const fromLat = pos.coords.latitude;
+          const fromLon = pos.coords.longitude;
+          if (status) status.textContent = 'Calculating route…';
+          if (btn) btn.textContent = 'Routing…';
+          try {
+            const url = '/api/route?from_lat=' + fromLat + '&from_lon=' + fromLon +
+              '&to_lat=' + destLat + '&to_lon=' + destLon + '&api_key=' + encodeURIComponent(apiKey);
+            const res = await fetch(url);
+            const data = await res.json();
+            const coords = (data.coordinates || (data.geometry && data.geometry.coordinates)) ||
+              [[fromLon, fromLat], [destLon, destLat]];
+            clearRoute();
+            map.addSource(routeLayerId, {
+              type: 'geojson',
+              data: { type: 'Feature', geometry: { type: 'LineString', coordinates: coords }, properties: {} }
+            });
+            map.addLayer({
+              id: routeLayerId,
+              type: 'line',
+              source: routeLayerId,
+              paint: { 'line-color': '#1a73e8', 'line-width': 5, 'line-opacity': 0.9 }
+            });
+            const b = coords.reduce((bound, c) => bound.extend(c), new maplibregl.LngLatBounds(coords[0], coords[0]));
+            map.fitBounds(b, { padding: 48, maxZoom: 16 });
+            new maplibregl.Marker({ color: '#16a34a' }).setLngLat([fromLon, fromLat]).addTo(map);
+            const dist = data.distance_km != null ? data.distance_km : (data.properties && data.properties.distance_km);
+            const dur = data.duration_min != null ? data.duration_min : (data.properties && data.properties.duration_min);
+            let msg = dist != null ? dist.toFixed(1) + ' km' : 'Route ready';
+            if (dur != null) msg += ' · ~' + dur + ' min';
+            if (status) status.textContent = msg;
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-route"></i> Directions from me'; }
+          } catch (e) {
+            if (status) status.textContent = 'Could not route. Try again.';
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-route"></i> Directions from me'; }
+          }
+        }, () => {
+          if (status) status.textContent = 'Location permission denied.';
+          if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-route"></i> Directions from me'; }
+        }, { enableHighAccuracy: true, timeout: 12000 });
+      }
+
+      if (hasDest) {
+        new maplibregl.Marker({ color: '#e11d48' })
+          .setLngLat([destLon, destLat])
+          .setPopup(new maplibregl.Popup().setHTML('<strong>' + destName.replace(/</g, '&lt;') + '</strong>'))
+          .addTo(map);
+
+        const card = document.getElementById('dest-card');
+        card.style.display = 'block';
+        const canRoute = has('route');
+        card.innerHTML =
+          '<h4><i class="fa-solid fa-location-dot" style="color:#e11d48"></i> ' + destName.replace(/</g, '&lt;') + '</h4>' +
+          '<div class="meta">' + destLat.toFixed(5) + ', ' + destLon.toFixed(5) + '</div>' +
+          (canRoute
+            ? '<div class="meta" id="dest-status">Route from your location to this point.</div>' +
+              '<button type="button" id="btn-dir"><i class="fa-solid fa-route"></i> Directions from me</button>'
+            : '<div class="meta" id="dest-status">Shared location</div>');
+        if (canRoute) {
+          document.getElementById('btn-dir').addEventListener('click', directionsFromMe);
+          if (wantDir) {
+            map.once('load', () => setTimeout(directionsFromMe, 400));
+          }
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

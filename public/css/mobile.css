@@ -1,0 +1,1182 @@
+/**
+ * mobile.css — touch-first layout (bottom nav, sheets, safe areas).
+ * Activated when <html> has class mahp-mobile (set by ui/mobile/shell.js).
+ */
+
+:root {
+  --m-nav-h: 56px;
+  --m-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --m-safe-top: env(safe-area-inset-top, 0px);
+  --m-accent: #2563eb;
+  --m-surface: #ffffff;
+  --m-surface-2: #f8fafc;
+  --m-border: #e2e8f0;
+  --m-text: #0f172a;
+  --m-muted: #64748b;
+  --m-shadow: 0 -4px 24px rgba(15, 23, 42, 0.08);
+  --m-radius: 16px;
+}
+
+/* ---------- Layout when mobile shell is on ---------- */
+html.mahp-mobile,
+html.mahp-mobile body {
+  height: 100%;
+  overflow: hidden;
+}
+
+html.mahp-mobile #app {
+  display: block;
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+/* Hide desktop chrome */
+html.mahp-mobile #sidebar {
+  display: none !important;
+}
+
+html.mahp-mobile .top-bar .top-actions,
+html.mahp-mobile .top-bar .tool-icons {
+  display: none !important;
+}
+
+html.mahp-mobile .color-palette {
+  display: none !important; /* shown contextually later */
+}
+
+html.mahp-mobile #map-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html.mahp-mobile #map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Mobile top search — full width, floating */
+html.mahp-mobile .top-bar {
+  position: absolute;
+  top: calc(8px + var(--m-safe-top));
+  left: 12px;
+  right: 12px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  height: auto;
+  pointer-events: none;
+}
+
+html.mahp-mobile .top-bar .search-box {
+  flex: 1;
+  pointer-events: auto;
+  background: var(--m-surface);
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--m-border);
+  min-height: 48px;
+  padding: 0 14px;
+}
+
+html.mahp-mobile .top-bar .search-box input {
+  font-size: 16px; /* avoid iOS zoom */
+}
+
+html.mahp-mobile #search-results {
+  position: absolute;
+  top: calc(64px + var(--m-safe-top));
+  left: 12px;
+  right: 12px;
+  max-height: min(50vh, 360px);
+  border-radius: 14px;
+  z-index: 25;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.15);
+}
+
+/* MapLibre controls — lift above bottom nav */
+html.mahp-mobile .maplibregl-ctrl-bottom-right,
+html.mahp-mobile .maplibregl-ctrl-bottom-left {
+  bottom: calc(var(--m-nav-h) + var(--m-safe-bottom) + 12px) !important;
+}
+
+html.mahp-mobile .maplibregl-ctrl-bottom-right {
+  right: 10px !important;
+}
+
+html.mahp-mobile .maplibregl-ctrl-bottom-left {
+  left: 10px !important;
+}
+
+html.mahp-mobile .maplibregl-ctrl-group button {
+  width: 40px !important;
+  height: 40px !important;
+}
+
+html.mahp-mobile .map-attribution {
+  bottom: calc(var(--m-nav-h) + var(--m-safe-bottom) + 4px) !important;
+  left: 8px !important;
+  right: auto !important;
+  font-size: 10px;
+  max-width: 55%;
+  opacity: 0.85;
+}
+
+html.mahp-mobile .info-panel {
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--m-nav-h) + var(--m-safe-bottom) + 16px);
+  max-width: none;
+  border-radius: 14px;
+}
+
+html.mahp-mobile .dest-directions-card {
+  bottom: calc(var(--m-nav-h) + var(--m-safe-bottom) + 16px);
+}
+
+/* ---------- Bottom navigation ---------- */
+.m-bottom-nav {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  height: calc(var(--m-nav-h) + var(--m-safe-bottom));
+  padding-bottom: var(--m-safe-bottom);
+  background: var(--m-surface);
+  border-top: 1px solid var(--m-border);
+  box-shadow: var(--m-shadow);
+  justify-content: space-around;
+  align-items: stretch;
+}
+
+html.mahp-mobile .m-bottom-nav {
+  display: flex;
+}
+
+.m-nav-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: none;
+  background: transparent;
+  color: var(--m-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  padding: 6px 4px 4px;
+  -webkit-tap-highlight-color: transparent;
+  min-height: var(--m-nav-h);
+}
+
+.m-nav-tab i {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.m-nav-tab.active {
+  color: var(--m-accent);
+}
+
+.m-nav-tab:active {
+  opacity: 0.7;
+}
+
+/* ---------- Bottom sheets (Phase 2 minimal) ---------- */
+.m-sheet-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: rgba(15, 23, 42, 0.35);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.m-sheet-backdrop.open {
+  display: block;
+  opacity: 1;
+}
+
+.m-sheet {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  max-height: min(78vh, 640px);
+  background: var(--m-surface);
+  border-radius: var(--m-radius) var(--m-radius) 0 0;
+  box-shadow: var(--m-shadow);
+  padding-bottom: calc(var(--m-safe-bottom) + 12px);
+  transform: translateY(100%);
+  transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.2, 1);
+  flex-direction: column;
+}
+
+.m-sheet.open {
+  display: flex;
+  transform: translateY(0);
+}
+
+.m-sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: #cbd5e1;
+  margin: 10px auto 6px;
+  flex-shrink: 0;
+}
+
+.m-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 16px 12px;
+  border-bottom: 1px solid var(--m-border);
+  flex-shrink: 0;
+}
+
+.m-sheet-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--m-text);
+}
+
+.m-sheet-close {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: var(--m-surface-2);
+  color: var(--m-muted);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.m-sheet-body {
+  overflow-y: auto;
+  padding: 12px 16px 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Create grid */
+.m-create-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.m-create-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 8px;
+  border: 1px solid var(--m-border);
+  border-radius: 14px;
+  background: var(--m-surface-2);
+  color: var(--m-text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 88px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.m-create-item i {
+  font-size: 22px;
+  color: var(--m-accent);
+}
+
+.m-create-item:active {
+  background: #e2e8f0;
+}
+
+.m-create-item[hidden] {
+  display: none !important;
+}
+
+/* More list */
+.m-more-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.m-more-list li {
+  margin: 0;
+}
+
+.m-more-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 4px;
+  border: none;
+  border-bottom: 1px solid var(--m-border);
+  background: transparent;
+  color: var(--m-text);
+  font-size: 15px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  min-height: 52px;
+}
+
+.m-more-item i {
+  width: 28px;
+  text-align: center;
+  color: var(--m-accent);
+  font-size: 18px;
+}
+
+.m-more-item:active {
+  background: var(--m-surface-2);
+}
+
+.m-more-item[hidden] {
+  display: none !important;
+}
+
+.m-more-section {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--m-muted);
+  padding: 16px 4px 6px;
+}
+
+/* Desktop: never show mobile chrome */
+html:not(.mahp-mobile) .m-bottom-nav,
+html:not(.mahp-mobile) .m-sheet,
+html:not(.mahp-mobile) .m-sheet-backdrop {
+  display: none !important;
+}
+
+/* ========== Phase 3 sheets heights ========== */
+.m-sheet.m-h-peek { max-height: 32vh; max-height: 32dvh; }
+.m-sheet.m-h-half { max-height: 70vh; max-height: 70dvh; } /* default open */
+.m-sheet.m-h-full { max-height: 88vh; max-height: 88dvh; }
+
+.m-sheet-handle {
+  cursor: pointer;
+}
+
+.m-empty {
+  color: var(--m-muted);
+  padding: 16px 4px;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* Search results list in sheet */
+.m-result-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.m-result-item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 14px 4px;
+  border: none;
+  border-bottom: 1px solid var(--m-border);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  min-height: 52px;
+}
+
+.m-result-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--m-text);
+}
+
+.m-result-type {
+  font-size: 12px;
+  color: var(--m-muted);
+  text-transform: capitalize;
+}
+
+.m-result-item:active {
+  background: var(--m-surface-2);
+}
+
+/* Place details */
+.m-place-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--m-text);
+  margin-bottom: 4px;
+}
+
+.m-place-type {
+  font-size: 13px;
+  color: var(--m-muted);
+  text-transform: capitalize;
+  margin-bottom: 6px;
+}
+
+.m-place-coords {
+  font-size: 12px;
+  font-family: ui-monospace, monospace;
+  color: var(--m-muted);
+  margin-bottom: 14px;
+}
+
+.m-place-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.m-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.m-btn-primary {
+  background: var(--m-accent);
+  color: #fff;
+}
+
+.m-btn-secondary {
+  background: var(--m-surface-2);
+  color: var(--m-text);
+  border: 1px solid var(--m-border);
+}
+
+.m-btn:active {
+  opacity: 0.85;
+}
+
+/* Workspace tray: Satellite / 3D view controls (mobile only) */
+.m-workspace-views {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.m-workspace-view-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--m-border);
+  border-radius: 12px;
+  background: var(--m-surface);
+  color: var(--m-text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.m-workspace-view-btn:active {
+  background: #f1f5f9;
+}
+.m-workspace-view-btn.active {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  color: #1d4ed8;
+  box-shadow: 0 0 0 1px #bfdbfe;
+}
+.m-workspace-view-btn i {
+  font-size: 16px;
+}
+
+/* Layers / Workspace sheet */
+.m-layers-toolbar {
+  margin-bottom: 12px;
+}
+
+.m-layer-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.m-layer-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--m-border);
+  min-height: 56px;
+}
+
+.m-layer-row.active {
+  background: #eff6ff;
+}
+
+.m-layer-vis {
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--m-muted);
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.m-layer-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  border: none;
+  background: transparent;
+  padding: 10px 8px 10px 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.m-layer-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--m-text);
+}
+
+.m-layer-meta {
+  font-size: 12px;
+  color: var(--m-muted);
+}
+
+/* Contextual tool bar (while drawing / measure / route) */
+.m-context-bar {
+  display: none;
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(var(--m-nav-h) + var(--m-safe-bottom) + 12px);
+  z-index: 35;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: 999px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
+  max-width: calc(100vw - 24px);
+}
+
+html.mahp-mobile .m-context-bar.visible {
+  display: flex;
+}
+
+html:not(.mahp-mobile) .m-context-bar {
+  display: none !important;
+}
+
+.m-ctx-btn {
+  border: none;
+  background: var(--m-surface-2);
+  color: var(--m-text);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.m-ctx-done {
+  width: auto;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--m-accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.m-ctx-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--m-text);
+  padding: 0 6px;
+  white-space: nowrap;
+}
+
+/* Hide desktop search dropdown on mobile when sheets handle results */
+html.mahp-mobile #search-results {
+  display: none !important;
+}
+
+/* ========== Rich create toolbar ========== */
+.m-context-bar-rich {
+  flex-direction: column;
+  align-items: stretch;
+  border-radius: 16px;
+  padding: 10px 12px;
+  gap: 8px;
+  min-width: min(340px, calc(100vw - 24px));
+}
+
+.m-ctx-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.m-ctx-row-main {
+  justify-content: space-between;
+}
+
+.m-ctx-row-style {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.m-ctx-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.m-ctx-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #cbd5e1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.m-ctx-swatch.active {
+  box-shadow: 0 0 0 2px var(--m-accent);
+}
+
+.m-ctx-widths {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.m-ctx-width {
+  width: 40px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--m-border);
+  background: var(--m-surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.m-ctx-width.active {
+  border-color: var(--m-accent);
+  background: #eff6ff;
+}
+
+.m-ctx-width-line {
+  display: block;
+  width: 22px;
+  background: #0f172a;
+  border-radius: 2px;
+}
+
+.m-ctx-hint {
+  font-size: 12px;
+  color: var(--m-muted);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.m-guide {
+  font-size: 15px;
+  color: var(--m-text);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.m-guide p {
+  margin: 0 0 10px;
+}
+
+.m-guide-muted {
+  font-size: 13px;
+  color: var(--m-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.m-share-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.m-btn-block {
+  width: 100%;
+  justify-content: center;
+}
+
+.m-share-active {
+  padding: 12px;
+  background: #eff6ff;
+  border-radius: 12px;
+  border: 1px solid #bfdbfe;
+}
+
+.m-share-active strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.m-desktop-panel-clone {
+  font-size: 14px;
+}
+
+/* ========== Compact 1-line context bar + collapsible style ========== */
+html.mahp-mobile .m-context-bar-rich {
+  flex-direction: column;
+  border-radius: 14px;
+  padding: 6px 8px;
+  gap: 4px;
+  min-width: 0;
+  width: auto;
+  max-width: calc(100vw - 16px);
+}
+
+html.mahp-mobile .m-ctx-one-line {
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+
+html.mahp-mobile .m-ctx-btn {
+  width: 34px;
+  height: 34px;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+html.mahp-mobile .m-ctx-done {
+  width: auto;
+  padding: 0 12px;
+  height: 34px;
+  font-size: 13px;
+}
+
+html.mahp-mobile .m-ctx-label {
+  font-size: 12px;
+  max-width: 72px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html.mahp-mobile .m-ctx-row-style {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: 40px;
+}
+
+html.mahp-mobile .m-ctx-style-collapsed {
+  display: none !important;
+}
+
+html.mahp-mobile .m-ctx-colors {
+  flex-wrap: nowrap;
+  gap: 4px;
+  justify-content: flex-start;
+}
+
+html.mahp-mobile .m-ctx-swatch {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+html.mahp-mobile .m-ctx-widths {
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+
+html.mahp-mobile .m-ctx-width {
+  width: 28px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+html.mahp-mobile .m-ctx-hint {
+  font-size: 11px;
+  display: none;
+}
+
+html.mahp-mobile .m-ctx-expanded .m-ctx-hint {
+  display: block;
+}
+
+/* Layer items in sheet */
+.m-layer-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.m-layer-exp {
+  border: none;
+  background: transparent;
+  color: var(--m-muted);
+  width: 28px;
+  height: 28px;
+  padding: 0;
+}
+
+.m-layer-items {
+  list-style: none;
+  margin: 0 0 8px 36px;
+  padding: 0;
+}
+
+.m-layer-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--m-surface-2);
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.m-layer-item-name {
+  font-weight: 500;
+  color: var(--m-text);
+}
+
+.m-layer-item-type {
+  color: var(--m-muted);
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
+.m-layer-empty {
+  margin: 0 0 8px 36px;
+  font-size: 12px;
+  color: var(--m-muted);
+}
+
+.m-place-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.m-place-actions .m-btn {
+  flex: 1;
+}
+
+.m-sheet-dragging {
+  transition: none !important;
+}
+
+html.mahp-mobile .map-drawing {
+  cursor: crosshair;
+}
+
+/* User chip on mobile search bar */
+html.mahp-mobile #m-user-chip {
+  pointer-events: auto;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.12);
+  color: var(--m-text);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ========== Draw whiteboard overlay (freehand / fence / barricade) ========== */
+#mahp-draw-board {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  pointer-events: auto;
+  touch-action: none;
+  display: none;
+}
+
+#mahp-draw-board.active {
+  display: block;
+}
+
+#mahp-draw-board .mahp-draw-bg {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+}
+
+#mahp-draw-board canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+#mahp-draw-board .mahp-draw-hint {
+  position: absolute;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  pointer-events: none;
+  background: rgba(15, 23, 42, 0.82);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  max-width: calc(100vw - 24px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Desktop never shows whiteboard (handled in map.css + tools.js) */
+html:not(.mahp-mobile) #mahp-draw-board,
+html:not(.mahp-mobile) #mahp-draw-board.active {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* Layer tree: parent layer + indented item rows */
+.m-layer-list-tree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.m-layer-block {
+  margin-bottom: 6px;
+  border-radius: 12px;
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  overflow: hidden;
+}
+
+.m-layer-block.active {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 1px #bfdbfe;
+}
+
+.m-layer-parent {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px 4px 2px;
+  min-height: 44px;
+}
+
+.m-layer-chevron {
+  border: none;
+  background: transparent;
+  color: var(--m-muted);
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.m-layer-parent-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 6px 4px;
+  min-width: 0;
+}
+
+.m-layer-parent-main .m-layer-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--m-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.m-layer-count {
+  font-size: 12px;
+  color: var(--m-muted);
+  flex-shrink: 0;
+  background: var(--m-surface-2);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.m-layer-children {
+  list-style: none;
+  margin: 0;
+  padding: 0 8px 8px 36px;
+}
+
+.m-layer-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 10px;
+  margin-bottom: 4px;
+  border-radius: 10px;
+  background: var(--m-surface-2);
+  font-size: 14px;
+}
+
+.m-layer-child-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--m-text);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.m-layer-child-del {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  padding: 0;
+  font-size: 14px;
+}
+
+.m-layer-child-del:active,
+.m-layer-child-del:hover {
+  color: #e11d48;
+  background: #fef2f2;
+}
+
+.m-layer-empty {
+  margin: 0 0 8px 36px;
+  font-size: 12px;
+  color: var(--m-muted);
+}
+
+/* More-menu panels as bottom trays (live sidebar-panel)
+   Must override: html.mahp-mobile #sidebar { display: none !important; } */
+html.mahp-mobile.mahp-panel-tray #sidebar {
+  display: block !important;
+  visibility: visible !important;
+  background: rgba(15, 23, 42, 0.4) !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 42 !important;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: auto !important;
+  /* Don't show desktop rail layout */
+  border: none !important;
+  box-shadow: none !important;
+}
+/* Hide desktop left nav icons when mobile tray is open */
+html.mahp-mobile.mahp-panel-tray #sidebar .sidebar-nav,
+html.mahp-mobile.mahp-panel-tray #sidebar .sidebar-header,
+html.mahp-mobile.mahp-panel-tray #sidebar .sidebar-footer,
+html.mahp-mobile.mahp-panel-tray #sidebar .nav-item,
+html.mahp-mobile.mahp-panel-tray #sidebar > *:not(#sidebar-panel) {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+html.mahp-mobile.mahp-panel-tray #sidebar-panel {
+  display: flex !important;
+  visibility: visible !important;
+  flex-direction: column !important;
+  position: fixed !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: calc(56px + env(safe-area-inset-bottom, 0px)) !important;
+  top: auto !important;
+  width: 100% !important;
+  max-height: 70vh !important;
+  max-height: 70dvh !important;
+  height: auto !important;
+  z-index: 43 !important;
+  pointer-events: auto !important;
+  border-radius: 16px 16px 0 0 !important;
+  box-shadow: 0 -8px 32px rgba(15, 23, 42, 0.18) !important;
+  background: #fff !important;
+  overflow: hidden !important;
+}
+html.mahp-mobile .m-tray-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  margin: 10px auto 4px;
+  flex-shrink: 0;
+}
+html.mahp-mobile.mahp-panel-tray #sidebar-panel .panel-body,
+html.mahp-mobile.mahp-panel-tray #generic-panel-content {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: calc(70vh - 64px);
+  max-height: calc(70dvh - 64px);
+  padding-bottom: 16px;
+}

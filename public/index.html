@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" class="mahp-booting">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>CISTECH Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="/css/map.css" />
+  <link rel="stylesheet" href="/css/desktop.css" />
+  <link rel="stylesheet" href="/css/mobile.css" />
+  <style>
+    /* Hide the app shell until map.js has resolved the API key's real
+       feature set and applied it to the DOM. Without this, the full toolbar
+       markup paints first (since it's all present in the HTML by default)
+       and only gets hidden a moment later once /api/config responds — a
+       visible "full UI flashes then downgrades" flicker. Inline + before any
+       other stylesheet so it applies before first paint, no network wait. */
+    html.mahp-booting #app { visibility: hidden; }
+    html.mahp-booting #boot-loader { display: flex; }
+    #boot-loader {
+      display: none; position: fixed; inset: 0; align-items: center; justify-content: center;
+      background: #fff; z-index: 9999; font-family: system-ui, sans-serif;
+    }
+    #boot-loader .boot-spinner {
+      width: 28px; height: 28px; border: 3px solid #e5e7eb; border-top-color: #2563eb;
+      border-radius: 50%; animation: mahp-boot-spin 0.8s linear infinite;
+    }
+    @keyframes mahp-boot-spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div id="boot-loader"><div class="boot-spinner"></div></div>
+  <div id="app">
+    <!-- Left icon-only nav (always collapsed style) + expandable content panel -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-rail">
+        <div class="sidebar-header">
+          <div class="logo" title="CISTECH Map">
+            <i class="fa-solid fa-map-location-dot"></i>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <button type="button" class="nav-item tool-btn" data-action="layers" data-tooltip="Workspace" id="btn-layers-panel">
+            <i class="fa-solid fa-layer-group"></i>
+          </button>
+          <button type="button" class="nav-item tool-btn" data-action="saved" data-tooltip="Saved">
+            <i class="fa-solid fa-bookmark"></i>
+          </button>
+          <button type="button" class="nav-item tool-btn" data-action="recents" data-tooltip="Recents">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+          </button>
+          <button type="button" class="nav-item tool-btn" data-action="contributions" data-tooltip="Your contributions">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+          <button type="button" class="nav-item tool-btn" data-action="location" data-tooltip="Movement trail">
+            <i class="fa-solid fa-person-walking"></i>
+          </button>
+          <button type="button" class="nav-item tool-btn" data-action="landmarks" data-tooltip="Nearest landmarks">
+            <i class="fa-solid fa-landmark"></i>
+          </button>
+          <div class="nav-divider"></div>
+          <button type="button" class="nav-item tool-btn" data-action="share" data-tooltip="Share or embed map">
+            <i class="fa-solid fa-share-nodes"></i>
+          </button>
+          <button type="button" class="nav-item tool-btn" data-action="sharescreen" data-tooltip="Share screen">
+            <i class="fa-solid fa-display"></i>
+          </button>
+          <button type="button" class="nav-item tool-btn" data-action="missing" data-tooltip="Add a missing place">
+            <i class="fa-solid fa-map-pin"></i>
+          </button>
+          <button type="button" class="nav-item tool-btn" data-action="business" data-tooltip="Add your business">
+            <i class="fa-solid fa-store"></i>
+          </button>
+          <button type="button" class="nav-item tool-btn" data-action="edit" data-tooltip="Edit the map">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Expandable content panel (Layers, Saved, Recents, forms, etc.) -->
+      <div id="sidebar-panel" class="sidebar-panel" style="display:none">
+        <div class="sidebar-panel-header">
+          <strong id="sidebar-panel-title"><i class="fa-solid fa-layer-group"></i> Workspace</strong>
+          <button type="button" id="sidebar-panel-close" class="icon-btn" title="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="sidebar-panel-body" class="sidebar-panel-body">
+          <!-- Layers content (shown when layers active) -->
+          <div id="layers-content" class="panel-section" style="display:none">
+            <div class="layers-toolbar">
+              <button type="button" id="btn-add-layer" class="btn-layer-add" title="Add layer">
+                <i class="fa-solid fa-plus"></i> Add layer
+              </button>
+              <div class="layers-toolbar-right">
+                <button type="button" id="btn-delete-selected" class="icon-btn" title="Delete selected items"><i class="fa-solid fa-trash-can"></i></button>
+                <button type="button" id="btn-export-layers" class="icon-btn" title="Export layers"><i class="fa-solid fa-download"></i></button>
+                <button type="button" id="btn-import-layers" class="icon-btn" title="Import layers"><i class="fa-solid fa-upload"></i></button>
+                <input type="file" id="import-layers-input" accept=".json,.geojson,application/json" hidden />
+              </div>
+            </div>
+            <div class="layers-options">
+              <label class="layers-option">
+                <input type="checkbox" id="labels-on-top" checked />
+                Map names on top of layers
+              </label>
+            </div>
+            <div id="layers-list" class="layers-list"></div>
+            <p class="layers-hint">Tip: Click a layer to make it active. New drawings go on the active layer. Drag to reorder. Ctrl+↑ / Ctrl+↓ to move. Ctrl+click items on the map to multi-select.</p>
+          </div>
+
+          <!-- Generic content for other nav actions -->
+          <div id="generic-panel-content" class="panel-section"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main map area -->
+    <main id="map-container">
+      <div id="map"></div>
+
+      <!-- Top search bar -->
+      <div class="top-bar">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="search-input" placeholder="Search places, roads, markets..." autocomplete="off" />
+          <button id="search-clear" class="clear-btn" style="display:none"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="top-actions tool-icons">
+          <button type="button" class="tool-btn" id="btn-satellite" data-tooltip="Satellite / Map">
+            <i class="fa-solid fa-globe"></i>
+          </button>
+          <button type="button" class="tool-btn" id="btn-3d" data-tooltip="3D view">
+            <i class="fa-solid fa-cube"></i>
+          </button>
+          <button type="button" class="tool-btn" id="btn-measure" data-tooltip="Measure">
+            <i class="fa-solid fa-ruler"></i>
+          </button>
+          <button type="button" class="tool-btn" id="btn-area" data-tooltip="Area">
+            <i class="fa-solid fa-chart-area"></i>
+          </button>
+          <button type="button" class="tool-btn" id="btn-mark-area" data-tooltip="Mark Area">
+            <i class="fa-solid fa-draw-polygon"></i>
+          </button>
+          <button type="button" class="tool-btn" id="btn-route" data-tooltip="Route">
+            <i class="fa-solid fa-route"></i>
+          </button>
+          <button type="button" class="tool-btn" id="btn-group" data-tooltip="Group selected (Ctrl+G)">
+            <i class="fa-solid fa-object-group"></i>
+          </button>
+          <span class="tool-divider"></span>
+          <button type="button" class="tool-btn" id="btn-freehand" data-tooltip="Freehand">
+            <i class="fa-solid fa-pencil"></i>
+          </button>
+          <button type="button" class="tool-btn" id="btn-polyline" data-tooltip="Polyline">
+            <i class="fa-solid fa-minus"></i>
+          </button>
+          <button type="button" class="tool-btn" id="btn-polygon" data-tooltip="Polygon">
+            <i class="fa-solid fa-vector-square"></i>
+          </button>
+          <button type="button" class="tool-btn" id="btn-text" data-tooltip="Text">
+            <i class="fa-solid fa-font"></i>
+          </button>
+          <button type="button" class="tool-btn" id="btn-fence" data-tooltip="Fence">
+            <i class="fa-solid fa-border-all"></i>
+          </button>
+          <button type="button" class="tool-btn" id="btn-barricade" data-tooltip="Barricade">
+            <i class="fa-solid fa-road-barrier"></i>
+          </button>
+          <span class="tool-divider"></span>
+          <button type="button" class="tool-btn" id="btn-user-name" data-tooltip="Your name">
+            <i class="fa-solid fa-user"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search results dropdown -->
+      <div id="search-results" class="search-results" style="display:none"></div>
+
+      <!-- Mark Area panel -->
+      <div id="mark-area-panel" class="mark-area-panel" style="display:none">
+        <div class="mark-area-header">
+          <strong>Mark an area</strong>
+          <button class="close-panel-sm" id="mark-area-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="mark-area-input-row">
+          <input type="text" id="mark-area-input" placeholder="e.g. Ikeja" autocomplete="off" />
+        </div>
+        <div id="mark-area-suggestions" class="mark-area-suggestions" style="display:none"></div>
+        <div id="mark-area-status" class="mark-area-status"></div>
+        <div id="mark-area-list" class="mark-area-list"></div>
+      </div>
+
+      <!-- Info panel (bottom / floating) -->
+      <div id="info-panel" class="info-panel" style="display:none">
+        <button class="close-panel" id="close-panel"><i class="fa-solid fa-xmark"></i></button>
+        <div id="info-content"></div>
+      </div>
+
+      <!-- Vertical color palette (near geolocate / zoom controls) -->
+      <div id="color-palette" class="color-palette" title="Pick a color for new drawings, or recolor selected items">
+        <button type="button" class="color-swatch active" data-color="#1a73e8" style="background:#1a73e8" title="Blue"></button>
+        <button type="button" class="color-swatch" data-color="#e11d48" style="background:#e11d48" title="Red"></button>
+        <button type="button" class="color-swatch" data-color="#16a34a" style="background:#16a34a" title="Green"></button>
+        <button type="button" class="color-swatch" data-color="#f59e0b" style="background:#f59e0b" title="Amber"></button>
+        <button type="button" class="color-swatch" data-color="#8b5cf6" style="background:#8b5cf6" title="Purple"></button>
+        <button type="button" class="color-swatch" data-color="#06b6d4" style="background:#06b6d4" title="Cyan"></button>
+        <button type="button" class="color-swatch" data-color="#ec4899" style="background:#ec4899" title="Pink"></button>
+        <button type="button" class="color-swatch" data-color="#5d4037" style="background:#5d4037" title="Brown"></button>
+        <button type="button" class="color-swatch" data-color="#202124" style="background:#202124" title="Black"></button>
+        <label class="color-swatch color-custom" title="Custom color">
+          <input type="color" id="custom-color" value="#1a73e8" />
+        </label>
+      </div>
+
+      <!-- Click coordinate readout (near scale bar) -->
+      <div id="coord-readout" class="coord-readout" style="display:none">
+        <span id="coord-text">—</span>
+      </div>
+
+      <!-- Inline text input for text tool -->
+      <div id="inline-text-box" class="inline-text-box" style="display:none">
+        <input type="text" id="inline-text-input" placeholder="Type text…" autocomplete="off" />
+      </div>
+
+      <!-- Attribution (editable from Dev console) -->
+      <div class="map-attribution" id="map-attribution">
+        © <a href="https://openstreetmap.org" target="_blank">OpenStreetMap</a> ·
+        <a href="https://cistechonline.com" target="_blank" rel="noopener">CISTECH Map</a> ·
+        <a href="/api/docs" target="_blank">API</a>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <!-- Modular core + features (load order matters) — see public/js/MODULES.md -->
+  <script src="/js/core/features.js"></script>
+  <script src="/js/core/state.js"></script>
+  <script src="/js/core/storage.js"></script>
+  <script src="/js/core/utils.js"></script>
+  <script src="/js/core/history.js"></script>
+  <script src="/js/core/map-bootstrap.js"></script>
+  <script src="/js/search/search.js"></script>
+  <script src="/js/analysis/measure.js"></script>
+  <!-- API-surface stubs (logic still migrating from map.js) -->
+  <script src="/js/drawing/tools.js"></script>
+  <script src="/js/drawing/select.js"></script>
+  <script src="/js/drawing/edit.js"></script>
+  <script src="/js/drawing/color.js"></script>
+  <script src="/js/layers/model.js"></script>
+  <script src="/js/layers/render.js"></script>
+  <script src="/js/layers/panel.js"></script>
+  <script src="/js/search/mark-area.js"></script>
+  <script src="/js/search/landmarks.js"></script>
+  <script src="/js/analysis/route.js"></script>
+  <script src="/js/share/share-link.js"></script>
+  <script src="/js/share/share-screen.js"></script>
+  <script src="/js/share/share-screen-av.js"></script>
+  <script src="/js/location/trail.js"></script>
+  <script src="/js/contribution/forms.js"></script>
+  <script src="/js/ui/desktop/sidebar.js"></script>
+  <script src="/js/ui/desktop/topbar.js"></script>
+  <script src="/js/ui/mobile/shell.js"></script>
+  <script src="/js/ui/mobile/sheets.js"></script>
+  <script src="/js/ui/mobile/create.js"></script>
+  <script src="/js/ui/mobile/explore.js"></script>
+  <script src="/js/ui/mobile/layers-sheet.js"></script>
+  <script src="/js/ui/mobile/more.js"></script>
+  <script src="/js/ui/mobile/tools-contextual.js"></script>
+  <script src="/js/ui/shared/search-ui.js"></script>
+  <script src="/js/ui/shared/place-details.js"></script>
+  <script src="/js/ui/shared/toasts.js"></script>
+  <script src="/js/map.js"></script>
+</body>
+</html>
