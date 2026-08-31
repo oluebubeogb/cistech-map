@@ -24,7 +24,6 @@ npm start
 | URL | Purpose |
 |-----|---------|
 | http://localhost:3847/ | Main map |
-| http://localhost:3847/devmapxt27yxtf819 | **Dev console** (secret path) |
 | http://localhost:3847/monitor | Usage monitor |
 | http://localhost:3847/embed | Embeddable map |
 | http://localhost:3847/api/docs | API docs |
